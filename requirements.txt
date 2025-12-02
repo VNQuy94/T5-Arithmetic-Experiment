@@ -1,0 +1,4 @@
+torch
+transformers
+num2words
+matplotlib
