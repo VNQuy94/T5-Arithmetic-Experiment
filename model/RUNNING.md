@@ -1,0 +1,50 @@
+# 💻 CÁCH CHẠY train.py 💻
+
+## Các tham số:
+
+# Đường dẫn
+- --train_file: Đường dẫn tới file dữ liệu train
+- --val_file: Đường dẫn tới file dữ liệu validation
+- --test_file: Đường dẫn tới file dữ liệu test
+- --output_dir: Đường dẫn output mô hình
+
+### Note: Chạy generate_data.py để sinh ra thêm file validation, gen bên train thì là balanced, gen bên test thì là random. => Nên gen bên train (Tỉ lệ 8 - 1 - 1 cũng không tệ). Trong code của người ta là train 100000, valid 10000, test 10000. 
+
+# Mô hình
+- --model_name_or_path: Tên mô hình, bao gồm (t5-small, t5-base, t5-large)
+- --max_seq_length: Độ dài của 1 chuỗi (theo token) đưa vào mô hình
+
+# Huấn luyện
+- --seed: Seed random
+- --epochs: Số lượng epoch
+- --train_batch_size: Na ná mini batch trong SGD
+- --val_batch_size: Na ná mini batch trong SGD
+- --lr: Hiệu chỉnh learning rate
+- --num_workers: Số lượng core CPU dùng để load data
+- --weight_decay: Dùng để xử lí overfitting (chatGPT không tính phí)
+
+# Phần cứng (không nên đổi)
+- --accelerator: Dùng gì để train (gpu, cpu, mps)
+- --devices: Để 1 thôi
+
+
+## Ví dụ lệnh chạy:
+
+```bash
+python .\model\train.py \
+    --train_file .\data\data_train.json \
+    --val_file .\data\data_val.json \
+    --test_file .\data\data_test.json \
+    --output_dir .\output\t5_decimal \
+    --model_name_or_path t5-small \
+    --max_seq_length 128 \
+    --seed 1 \
+    --epochs 20 \
+    --train_batch_size 4 \
+    --val_batch_size 32 \
+    --lr 3e-4 \
+    --num_workers 4 \
+    --weight_decay 5e-5 \
+    --accelerator gpu \
+    --devices 1
+```

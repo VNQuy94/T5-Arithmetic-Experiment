@@ -1,4 +1,5 @@
-torch
-transformers
-num2words
+torch==2.9.1
+transformers==4.57.3
+num2words==0.5.14
 matplotlib
+pytorch-lightning==2.6.0
