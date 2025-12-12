@@ -26,6 +26,12 @@ def format_words(n):
     return num2words(n).replace("-", " ").replace(",", "")
 
 def format_10_based(n):
+    if n < 0:
+        sign = "- "
+        n = abs(n)
+    else:
+        sign = ""
+        
     s = str(n)
     length = len(s)
     parts = []
@@ -35,16 +41,22 @@ def format_10_based(n):
             parts.append(f"{digit} {10**power}")
         else:
             parts.append(f"{digit}")
-    return " ".join(parts)
+    return sign + " ".join(parts)
 
 def format_10e_based(n):
+    if n < 0:
+        sign = "- "
+        n = abs(n)
+    else:
+        sign = ""
+
     s = str(n)
     length = len(s)
     parts = []
     for i, digit in enumerate(s):
         power = length - 1 - i
         parts.append(f"{digit} 10e{power}")
-    return " ".join(parts)
+    return sign + " ".join(parts)
 
 def apply_format(n, fmt, max_digits):
     if fmt == "decimal":
