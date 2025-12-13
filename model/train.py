@@ -2,6 +2,7 @@ import argparse
 import glob
 import json
 import os
+import csv
 import pytorch_lightning as pl
 import random
 import torch
@@ -33,6 +34,8 @@ class T5Finetuner(pl.LightningModule):
         self._val_dataloader = val_dataloader
         self._test_dataloader = test_dataloader
 
+        self.test_log_data = []
+
     def prepare_batch(self, questions: List[str], answers: List[str]):
         input_dict = self.tokenizer.batch_encode_plus(
             list(questions), padding=True, truncation=True, 
@@ -54,13 +57,14 @@ class T5Finetuner(pl.LightningModule):
         return self.model(**kwargs)
 
     def training_step(self, batch, batch_nb):
-        questions, correct_answers = batch
+        questions = batch['input']
+        targets = batch['target']
 
         if batch_nb % 100 == 0:
-            print(f"\n[TRAIN] Input: {questions[0]} | Target: {correct_answers[0]}")
+            print(f"\n[TRAIN] Input: {questions[0]} | Target: {targets[0]}")
 
         input_ids, attention_mask, labels = self.prepare_batch(
-            questions=questions, answers=correct_answers)
+            questions=questions, answers=targets)
 
         loss = self.model(input_ids=input_ids,
                           attention_mask=attention_mask,
@@ -69,12 +73,16 @@ class T5Finetuner(pl.LightningModule):
         self.log('train_loss', loss, prog_bar=True, logger=True, batch_size=len(questions))
         return loss
 
-    def inference_step(self, batch, batch_nb: int):
-        questions, correct_answers = batch
+    def inference_step(self, batch, batch_nb: int, stage: str = 'val'):
+        questions = batch['input']
+        correct_answers = batch['target']
+        
+        lengths = batch.get('length', [0] * len(questions))
+        operations = batch.get('operation', ['unknown'] * len(questions))
 
         input_ids, attention_mask, _ = self.prepare_batch(
-            questions=questions, answers=correct_answers)
-
+        questions=questions, answers=correct_answers)
+        
         batch_outputs = self.model.generate(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -95,25 +103,61 @@ class T5Finetuner(pl.LightningModule):
             print(f'       Predicted: {predicted_answers[0]}')
             print(f'       Exact? {exact_matches[0]}')
 
+        if stage == 'test':
+            for i in range(len(questions)):
+                if hasattr(lengths[i], 'item'):
+                    digit_len = lengths[i].item()
+                else:
+                    digit_len = lengths[i]
+
+                log_entry = {
+                    "input": questions[i],
+                    "target": correct_answers[i],
+                    "prediction": predicted_answers[i],
+                    "is_correct": exact_matches[i],
+                    "num_digits": int(digit_len),
+                    "operation": operations[i],
+                    "model_name": self.hparams.model_name_or_path,
+                    "data_format": getattr(self.hparams, 'format', 'unknown'),
+                    "train_size": getattr(self.hparams, 'train_size_log', 'unknown'),
+                    "seed": self.hparams.seed
+                }
+                self.test_log_data.append(log_entry)
+
         return {'exact_matches': exact_matches}
 
-    def validation_step(self, batch, batch_nb):
-        return self.inference_step(batch, batch_nb)
-
-    def test_step(self, batch, batch_nb):
-        return self.inference_step(batch, batch_nb)
-
-    def validation_step(self, batch, batch_idx):
-        metrics = self.inference_step(batch, batch_idx)
+    def validation_step(self, batch, batch_idx, stage: str = 'val'):
+        metrics = self.inference_step(batch, batch_idx, stage)
         val_exact_match = sum(metrics['exact_matches']) / len(metrics['exact_matches'])
-        self.log('val_exact_match', val_exact_match, prog_bar=True, on_epoch=True, batch_size=len(batch[0]))
+        self.log('val_exact_match', val_exact_match, prog_bar=True, on_epoch=True, batch_size=len(batch['input']))
         return metrics
 
-    def test_step(self, batch, batch_idx):
-        metrics = self.inference_step(batch, batch_idx)
+    def test_step(self, batch, batch_idx, stage: str = 'test'):
+        metrics = self.inference_step(batch, batch_idx, stage)
         test_exact_match = sum(metrics['exact_matches']) / len(metrics['exact_matches'])
-        self.log('test_exact_match', test_exact_match, prog_bar=True, on_epoch=True, batch_size=len(batch[0]))
+        self.log('test_exact_match', test_exact_match, prog_bar=True, on_epoch=True, batch_size=len(batch['input']))
         return metrics
+    
+    def on_test_end(self):
+        # Chỉ ghi file nếu có dữ liệu
+        if len(self.test_log_data) > 0:
+            filename = f"results_{self.hparams.model_name_or_path}_{getattr(self.hparams, 'format', 'unk')}_{getattr(self.hparams, 'train_size_log', 'unk')}sz_seed{self.hparams.seed}.csv"
+            filename = filename.replace("/", "_") # Fix lỗi tên file nếu model path có dấu /
+            
+            save_path = os.path.join(self.hparams.output_dir, filename)
+            
+            keys = self.test_log_data[0].keys()
+            
+            # Ghi CSV
+            with open(save_path, 'w', newline='', encoding='utf-8') as f:
+                dict_writer = csv.DictWriter(f, fieldnames=keys)
+                dict_writer.writeheader()
+                dict_writer.writerows(self.test_log_data)
+            
+            print(f"\n[INFO] Test results saved to: {save_path}")
+            
+            # Dọn dẹp bộ nhớ
+            self.test_log_data = []
 
     def train_dataloader(self):
         return self._train_dataloader
@@ -185,6 +229,11 @@ if __name__ == '__main__':
     parser.add_argument("--lr", default=config.LEARNING_RATE, type=float)
     parser.add_argument("--num_workers", default=config.NUM_WORKERS, type=int)
     
+
+    parser.add_argument("--format", type=str, default="unknown", help="Format used: 10e-based, decimal...")
+    parser.add_argument("--train_size_log", type=str, default="unknown", help="Size of training set (e.g., 10k)")
+    parser.add_argument("--sampling_strategy", type=str, default="unknown", help="balanced or random")
+    
     parser.add_argument("--weight_decay", default=config.WEIGHT_DECAY, type=float, help="Weight decay if we apply some.")
 
     # Hardware
@@ -204,7 +253,7 @@ if __name__ == '__main__':
     print(f"Loading train data from {args.train_file}...")
     dataset_train = JSONDataset(args.train_file)
     
-    print(f"Loading validation data from {args.train_file}...")
+    print(f"Loading validation data from {args.val_file}...")
     dataset_val = JSONDataset(args.val_file)
     
     print(f"Loading test data from {args.test_file}...")
