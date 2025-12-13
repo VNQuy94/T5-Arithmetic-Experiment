@@ -27,6 +27,9 @@ def random_sampling(max_digits):
     return n1, n2, length
 
 def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_file, print_example=False):
+    if (num_samples <= 0):
+        return
+
     data = []
     formats = ["decimal", "character", "fixed-character", "underscore", "words", "10-based", "10e-based"]
     operations = ["plus", "minus"]
@@ -76,7 +79,7 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
 
     with open(output_file, 'w') as f:
         json.dump(data, f, indent=2)
-    print(f"Generated {len(data)} samples to {output_file}")
+    print(f"Generated {len(data)} \"{sampling_strategy}\" samples to {output_file}")
 
     if print_example:
         rng = random.randint(0, len(data) - 1) 
@@ -96,18 +99,21 @@ if __name__ == "__main__":
     # Số lượng mẫu kiểm tra
     parser.add_argument("--test", type=int, default=1000)
 
+    # Số lượng mẫu validation (nếu cần)
+    parser.add_argument("--val", type=int, default=0)
+
     # Số lượng chữ số tối đa
     parser.add_argument("--digits", type=int, default=6)
 
     # Định dạng
     parser.add_argument("--format", type=str, default="decimal")
 
-    # In ra một ví dụ (nếu cần)
+    # In ra một ví dụ (nếu cần kiểm tra lại)
     parser.add_argument("--print", type=bool, default=False)
     args = parser.parse_args()
 
     # ========================================== CÁCH CHẠY FILE ========================================== # 
-    # py generate_data.py --train 10000 --test 1000 --digits 6 --format [FORMAT]                           #
+    # py generate_data.py --train 10000 --test 1000 --val 1000 --digits 6 --format [FORMAT]                #
     # Thêm --print True nếu muốn in ra một ví dụ                                                           #
     # CHỌN FORMAT TRONG: [decimal, character, fixed-character, underscore, words, 10-based, 10e-based]     #
     # ==================================================================================================== #
@@ -131,3 +137,14 @@ if __name__ == "__main__":
       output_file="data/data_test.json", 
       print_example=args.print
     )
+
+    # Tạo dữ liệu validation (Cân bằng, NẾU CẦN)
+    if (args.val > 0):
+        generate_dataset(
+            num_samples=args.val, 
+            max_digits=args.digits, 
+            sampling_strategy="balanced", 
+            format=args.format, 
+            output_file="data/data_val.json", 
+            print_example=args.print
+        )

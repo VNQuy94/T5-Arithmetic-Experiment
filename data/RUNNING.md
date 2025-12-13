@@ -4,15 +4,24 @@
 
 - --train: Số lượng mẫu huấn luyện
 - --test: Số lượng mẫu kiểm tra
+- --val: Số lượng mẫu validation (thêm nếu cần)
 - --digits: Số lượng chữ số tối đa của mẫu
 - --format: Định dạng của mẫu (cần truyền đúng định dạng)
 - --print: In ra một ví dụ (thêm nếu cần)
 
+### ⚠️ Quan trọng:
+
+- Tập **validation** được sử dụng trong **Appendix C và D**, với mục đích là chọn checkpoint tốt nhất sau quá trình **HUẤN LUYỆN**, nên tập validation sẽ lấy mẫu cân bằng.
+
+- _Nếu lấy mẫu ngẫu nhiên thì hơn 90% mẫu sẽ có số chữ số tối đa, gây ra chênh lệch và overfitting với **mẫu có số chữ số tối đa**._
+
 ## Ví dụ lệch chạy:
 
 ```bash
-py generate_data.py --train 10000 --test 1000 --digits 6 --format decimal
+py generate_data.py --train 10000 --test 1000 <--val 1000> --digits 6 --format decimal
 ```
+
+### ❗ Lưu ý: Nếu không cần tập validation thì chỉ cần bỏ tham số --val
 
 ## Định dạng
 
