@@ -11,7 +11,7 @@
 
 ### ⚠️ Quan trọng:
 
-- Tập **validation** được sử dụng trong **Appendix C và D**, với mục đích là chọn checkpoint tốt nhất sau quá trình **HUẤN LUYỆN**, nên tập validation sẽ lấy mẫu cân bằng.
+- Tập **validation** (hoặc development set) được sử dụng trong **Phần Chính, Appendix C, D, F và G**, với mục đích là chọn checkpoint tốt nhất sau quá trình **HUẤN LUYỆN**, nên tập validation này sẽ lấy mẫu cân bằng.
 
 - _Nếu lấy mẫu ngẫu nhiên thì hơn 90% mẫu sẽ có số chữ số tối đa, gây ra chênh lệch và overfitting với **mẫu có số chữ số tối đa**._
 
