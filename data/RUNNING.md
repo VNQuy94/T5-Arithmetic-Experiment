@@ -80,7 +80,7 @@ data/experiment/
 ### Ví dụ:
 
 ```bash
-python generate_data.py --mode experiment --base_path data/experiment --seed 42 --format 10e-based
+python generate_data.py --mode experiment --base_path data/experiment --seed 42 --format 10e-based --only_addition
 ```
 
 ## ⚠️ Lưu ý quan trọng
