@@ -53,7 +53,7 @@ Tự động tạo dữ liệu để chạy lại Thí nghiệm chính của bà
 - Tại mỗi độ dài, chạy 5 lần lặp (seeds) để tạo 3 tập dữ liệu mỗi lần:
   - 1 tập **Train** (1000 mẫu, Balanced).
   - 1 tập **Validation** (1000 mẫu, Balanced).
-  - 1 tập **Test** (500 mẫu, Random).
+  - 1 tập **Test** (200 mẫu, Random).
 
 Cấu trúc thư mục output:
 
