@@ -14,6 +14,12 @@
 - --model_name_or_path: Tên mô hình, bao gồm (t5-small, t5-base, t5-large)
 - --max_seq_length: Độ dài của 1 chuỗi (theo token) đưa vào mô hình
 
+## Các tham số Logging & Metadata
+Các tham số này không ảnh hưởng đến quá trình train, nhưng sẽ được ghi vào file CSV kết quả để phân biệt các lần chạy.
+- `--format`: Định dạng dữ liệu đang chạy (vd: `10e-based`, `decimal`, `character`).
+- `--train_size_log`: Ghi chú kích thước tập train (vd: `10k`, `100k`).
+- `--sampling_strategy`: Ghi chú cách lấy mẫu (vd: `balanced`, `random`).
+
 # Huấn luyện
 - --seed: Seed random
 - --epochs: Số lượng epoch
@@ -35,16 +41,19 @@ python .\model\train.py \
     --train_file .\data\data_train.json \
     --val_file .\data\data_val.json \
     --test_file .\data\data_test.json \
-    --output_dir .\output\t5_decimal \
+    --output_dir .\output\run_experiment_1 \
     --model_name_or_path t5-small \
-    --max_seq_length 128 \
-    --seed 1 \
-    --epochs 20 \
-    --train_batch_size 4 \
+    --max_seq_length 512 \
+    --format 10e-based \
+    --train_size_log 10000 \
+    --sampling_strategy balanced \
+    --seed 42 \
+    --epochs 50 \
+    --train_batch_size 16 \
     --val_batch_size 32 \
     --lr 3e-4 \
-    --num_workers 4 \
-    --weight_decay 5e-5 \
+    --num_workers 2 \
+    --weight_decay 0.01 \
     --accelerator gpu \
     --devices 1
 ```
