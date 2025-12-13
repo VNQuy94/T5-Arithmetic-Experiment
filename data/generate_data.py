@@ -26,13 +26,16 @@ def random_sampling(max_digits):
     length = len(str(max(n1, n2)))
     return n1, n2, length
 
-def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_file, print_example=False):
+def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_file, print_example=False, only_addition=False):
     if (num_samples <= 0):
         return
 
     data = []
     formats = ["decimal", "character", "fixed-character", "underscore", "words", "10-based", "10e-based"]
-    operations = ["plus", "minus"]
+    if only_addition:
+        operations = ["plus"]
+    else:
+        operations = ["plus", "minus"]
 
     # Nếu format không hợp lệ, chọn ngẫu nhiên
     if (format not in formats):
@@ -92,59 +95,119 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
-    # Số lượng mẫu huấn luyện
-    parser.add_argument("--train", type=int, default=10000)
-
-    # Số lượng mẫu kiểm tra
-    parser.add_argument("--test", type=int, default=1000)
-
-    # Số lượng mẫu validation (nếu cần)
-    parser.add_argument("--val", type=int, default=0)
-
-    # Số lượng chữ số tối đa
+    
+    # Common arguments
     parser.add_argument("--digits", type=int, default=6)
-
-    # Định dạng
     parser.add_argument("--format", type=str, default="decimal")
-
-    # In ra một ví dụ (nếu cần kiểm tra lại)
     parser.add_argument("--print", type=bool, default=False)
+    parser.add_argument("--only_addition", action="store_true", help="Chỉ tạo phép cộng (loại bỏ phép trừ)")
+    
+    # Mode selection
+    parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
+    parser.add_argument("--mode", type=str, choices=["batch", "single", "experiment"], default="batch",
+                        help="batch: Tạo 3 tập train/test/val. single: Tạo 1 tập tùy chỉnh. experiment: Tạo dữ liệu cho experiment chính.")
+    
+    # Batch mode arguments
+    parser.add_argument("--train", type=int, default=10000, help="[Batch] Số mẫu train")
+    parser.add_argument("--test", type=int, default=1000, help="[Batch] Số mẫu test")
+    parser.add_argument("--val", type=int, default=0, help="[Batch] Số mẫu val")
+
+    # Single mode arguments
+    parser.add_argument("--count", type=int, help="[Single] Số mẫu")
+    parser.add_argument("--strategy", type=str, choices=["balanced", "random"], help="[Single] Quy tắc lấy mẫu")
+    parser.add_argument("--output", type=str, help="[Single] Đường dẫn file output")
+
+    # Experiment mode arguments
+    parser.add_argument("--base_path", type=str, default="data/experiment", help="[Experiment] Base output directory")
+
     args = parser.parse_args()
 
-    # ========================================== CÁCH CHẠY FILE ========================================== # 
-    # py generate_data.py --train 10000 --test 1000 --val 1000 --digits 6 --format [FORMAT]                #
-    # Thêm --print True nếu muốn in ra một ví dụ                                                           #
-    # CHỌN FORMAT TRONG: [decimal, character, fixed-character, underscore, words, 10-based, 10e-based]     #
-    # ==================================================================================================== #
+    if args.seed is not None:
+        random.seed(args.seed)
 
-    # Tạo dữ liệu huấn luyện (Cân bằng)
-    generate_dataset(
-      num_samples=args.train, 
-      max_digits=args.digits, 
-      sampling_strategy="balanced", 
-      format=args.format, 
-      output_file="data/data_train.json", 
-      print_example=args.print
-    )
+    if args.mode == "experiment":
+        # Main Experiment:
+        # 5 tập của 1,000 mẫu phép cộng (Balanced)
+        # x-axis: số chữ số tối đa (e.g. 5, 10, 15, 20, 25, 30)
+        # Tập validation: 1,000 mẫu
+        
+        digit_steps = [2, 5, 10, 15, 20, 25, 30]
+        
+        print(f"Generating Experiment Data in {args.base_path}...")
+        
+        for d in digit_steps:
+            # Tạo mỗi thư mục cho mỗi chữ số
+            dir_path = os.path.join(args.base_path, f"digits_{d}")
+            os.makedirs(dir_path, exist_ok=True)
+            
+            print(f"  -> Processing {d} digits...")
 
-    # Tạo dữ liệu kiểm tra (Ngẫu nhiên)
-    generate_dataset(
-      num_samples=args.test, 
-      max_digits=args.digits, 
-      sampling_strategy="random", 
-      format=args.format, 
-      output_file="data/data_test.json", 
-      print_example=args.print
-    )
+            # Lặp qua 5 seed ngẫu nhiên
+            for run_id in range(1, 6):
+                # Set base seed
+                if args.seed is not None:
+                    run_seed = args.seed + run_id
+                    random.seed(run_seed)
+                
+                print(f"    -> Run {run_id}...")
 
-    # Tạo dữ liệu validation (Cân bằng, NẾU CẦN)
-    if (args.val > 0):
+                # 1. Train Set (Balanced, 1000 mẫu)
+                train_file = os.path.join(dir_path, f"train_{run_id}.json")
+                generate_dataset(1000, d, "balanced", args.format, train_file, only_addition=args.only_addition)
+
+                # 2. Validation Set (Balanced, 1000 mẫu)  
+                val_file = os.path.join(dir_path, f"val_{run_id}.json")
+                generate_dataset(1000, d, "balanced", args.format, val_file, only_addition=args.only_addition)
+
+                # 3. Test Set (Random, 200 mẫu)
+                test_file = os.path.join(dir_path, f"test_{run_id}.json")
+                generate_dataset(200, d, "random", args.format, test_file, only_addition=args.only_addition)
+
+    elif args.mode == "single":
+        if not args.count or not args.strategy or not args.output:
+            parser.error("Cần cung cấp --count, --strategy, và --output trong mode single.")
+        
         generate_dataset(
-            num_samples=args.val, 
-            max_digits=args.digits, 
-            sampling_strategy="balanced", 
-            format=args.format, 
-            output_file="data/data_val.json", 
-            print_example=args.print
+            num_samples=args.count,
+            max_digits=args.digits,
+            sampling_strategy=args.strategy,
+            format=args.format,
+            output_file=args.output,
+            print_example=args.print,
+            only_addition=args.only_addition
         )
+    else:
+        # Gen theo mode batch
+        # Tạo dữ liệu huấn luyện (Cân bằng)
+        generate_dataset(
+          num_samples=args.train, 
+          max_digits=args.digits, 
+          sampling_strategy="balanced", 
+          format=args.format, 
+          output_file="data/data_train.json", 
+          print_example=args.print,
+          only_addition=args.only_addition
+        )
+
+        # Tạo dữ liệu kiểm tra (Ngẫu nhiên)
+        generate_dataset(
+          num_samples=args.test, 
+          max_digits=args.digits, 
+          sampling_strategy="random", 
+          format=args.format, 
+          output_file="data/data_test.json", 
+          print_example=args.print,
+          only_addition=args.only_addition
+        )
+
+        # Tạo dữ liệu validation (Cân bằng, NẾU CẦN)
+        if (args.val > 0):
+            generate_dataset(
+                num_samples=args.val, 
+                max_digits=args.digits, 
+                sampling_strategy="balanced", 
+                format=args.format, 
+                output_file="data/data_val.json", 
+                print_example=args.print,
+                only_addition=args.only_addition
+            )
