@@ -159,9 +159,9 @@ if __name__ == "__main__":
                 val_file = os.path.join(dir_path, f"val_{run_id}.json")
                 generate_dataset(1000, d, "balanced", args.format, val_file, only_addition=args.only_addition)
 
-                # 3. Test Set (Random, 200 mẫu)
+                # 3. Test Set (Random, 2000 mẫu)
                 test_file = os.path.join(dir_path, f"test_{run_id}.json")
-                generate_dataset(200, d, "random", args.format, test_file, only_addition=args.only_addition)
+                generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition)
 
     elif args.mode == "single":
         if not args.count or not args.strategy or not args.output:
