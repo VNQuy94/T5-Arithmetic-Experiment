@@ -209,6 +209,8 @@ class T5Finetuner(pl.LightningModule):
         }
 
 if __name__ == '__main__':
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    
     parser = argparse.ArgumentParser(description='Train T5 on arithmetic problems.')
     
     # Paths
@@ -273,7 +275,7 @@ if __name__ == '__main__':
         dirpath=args.output_dir,
         filename='{epoch}-{val_exact_match:.4f}',
         verbose=True, 
-        save_last=True, 
+        save_last=False, 
         save_top_k=1, 
         mode='max', 
         monitor='val_exact_match',
