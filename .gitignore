@@ -208,3 +208,4 @@ __marimo__/
 
 data/*.json
 data/*.csv
+data/experiment

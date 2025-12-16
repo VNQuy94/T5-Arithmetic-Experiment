@@ -108,9 +108,9 @@ if __name__ == "__main__":
                         help="batch: Tạo 3 tập train/test/val. single: Tạo 1 tập tùy chỉnh. experiment: Tạo dữ liệu cho experiment chính.")
     
     # Batch mode arguments
-    parser.add_argument("--train", type=int, default=10000, help="[Batch] Số mẫu train")
-    parser.add_argument("--test", type=int, default=1000, help="[Batch] Số mẫu test")
-    parser.add_argument("--val", type=int, default=0, help="[Batch] Số mẫu val")
+    parser.add_argument("--train", type=int, default=10000, help="[Batch / Experiment] Số mẫu train")
+    parser.add_argument("--test", type=int, default=1000, help="[Batch / Experiment] Số mẫu test")
+    parser.add_argument("--val", type=int, default=0, help="[Batch / Experiment] Số mẫu val")
 
     # Single mode arguments
     parser.add_argument("--count", type=int, help="[Single] Số mẫu")
@@ -118,7 +118,8 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=str, help="[Single] Đường dẫn file output")
 
     # Experiment mode arguments
-    parser.add_argument("--base_path", type=str, default="data/experiment", help="[Experiment] Base output directory")
+    parser.add_argument("--base_path", type=str, default="data/experiment", help="[Experiment] Thư mục output")
+    parser.add_argument("--digit_steps", type=int, nargs='+', default=None, help="[Experiment] Danh sách các chữ số tối đa (default: 2, 5, 10, 15, 20, 25, 30)")
 
     args = parser.parse_args()
 
@@ -131,7 +132,10 @@ if __name__ == "__main__":
         # x-axis: số chữ số tối đa (e.g. 5, 10, 15, 20, 25, 30)
         # Tập validation: 1,000 mẫu
         
-        digit_steps = [2, 5, 10, 15, 20, 25, 30]
+        if args.digit_steps:
+            digit_steps = args.digit_steps
+        else:
+            digit_steps = [2, 5, 10, 15, 20, 25, 30]
         
         print(f"Generating Experiment Data in {args.base_path}...")
         
@@ -153,15 +157,24 @@ if __name__ == "__main__":
 
                 # 1. Train Set (Balanced, 1000 mẫu)
                 train_file = os.path.join(dir_path, f"train_{run_id}.json")
-                generate_dataset(1000, d, "balanced", args.format, train_file, only_addition=args.only_addition)
+                if args.train:
+                    generate_dataset(args.train, d, "balanced", args.format, train_file, only_addition=args.only_addition)
+                else:
+                    generate_dataset(1000, d, "random", args.format, train_file, only_addition=args.only_addition)
 
                 # 2. Validation Set (Balanced, 1000 mẫu)  
                 val_file = os.path.join(dir_path, f"val_{run_id}.json")
-                generate_dataset(1000, d, "balanced", args.format, val_file, only_addition=args.only_addition)
+                if args.val:
+                    generate_dataset(args.val, d, "balanced", args.format, val_file, only_addition=args.only_addition)
+                else:
+                    generate_dataset(1000, d, "random", args.format, val_file, only_addition=args.only_addition)
 
                 # 3. Test Set (Random, 2000 mẫu)
                 test_file = os.path.join(dir_path, f"test_{run_id}.json")
-                generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition)
+                if args.test:
+                    generate_dataset(args.test, d, "random", args.format, test_file, only_addition=args.only_addition)
+                else:
+                    generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition)
 
     elif args.mode == "single":
         if not args.count or not args.strategy or not args.output:
