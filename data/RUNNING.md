@@ -75,12 +75,13 @@ data/experiment/
 ### Tham số riêng:
 
 - `--base_path`: Thư mục gốc chứa dữ liệu (mặc định: `data/experiment`).
+- `--digit_steps`: Danh sách các số lượng chữ số cụ thể cần chạy (ví dụ: `--digit_steps 2 3`). Mặc định: `2 5 10 15 20 25 30`.
 - `--seed`: Seed nền tảng để đảm bảo tính tái lập (Optional).
 
 ### Ví dụ:
 
 ```bash
-python generate_data.py --mode experiment --base_path data/experiment --seed 42 --format 10e-based --only_addition
+python generate_data.py --mode experiment --base_path data/experiment --seed 42 --format 10e-based --only_addition --digit_steps 5 10
 ```
 
 ## ⚠️ Lưu ý quan trọng
