@@ -2,7 +2,7 @@ import random
 import json
 import argparse
 import os
-from utils import apply_format
+from utils import apply_format, invert_string
 
 def balanced_sampling(max_digits):
     """
@@ -26,7 +26,7 @@ def random_sampling(max_digits):
     length = len(str(max(n1, n2)))
     return n1, n2, length
 
-def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_file, print_example=False, only_addition=False):
+def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_file, print_example=False, only_addition=False, inverse_input=False, inverse_output=False):
     if (num_samples <= 0):
         return
 
@@ -65,12 +65,20 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
         s2 = apply_format(n2, fmt, max_digits)
         s_res = apply_format(result, fmt, max_digits)
         
+        # Invert inputs if requested
+        if inverse_input:
+            s1 = invert_string(s1)
+            s2 = invert_string(s2)
+        
         # Ví dụ đã thay đổi định dạng
         # Đầu vào: "What is 3 10e1 2 10e0 plus 5 10e0?"
         # Kết quả mong muốn: "3 10e1 7 10e0"
         
         input_text = f"What is {s1} {op_str} {s2}?"
         target_text = s_res
+        
+        if inverse_output:
+             target_text = invert_string(target_text)
 
         data.append({
             "input": input_text,
@@ -101,6 +109,8 @@ if __name__ == "__main__":
     parser.add_argument("--format", type=str, default="decimal")
     parser.add_argument("--print", type=bool, default=False)
     parser.add_argument("--only_addition", action="store_true", help="Chỉ tạo phép cộng (loại bỏ phép trừ)")
+    parser.add_argument("--inverse-input", action="store_true", help="Đảo ngược các số trong input")
+    parser.add_argument("--inverse-output", action="store_true", help="Đảo ngược kết quả")
     
     # Mode selection
     parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
@@ -157,15 +167,15 @@ if __name__ == "__main__":
 
                 # 1. Train Set (Balanced, 1000 mẫu)
                 train_file = os.path.join(dir_path, f"train_{run_id}.json")
-                generate_dataset(1000, d, "random", args.format, train_file, only_addition=args.only_addition)
+                generate_dataset(1000, d, "random", args.format, train_file, only_addition=args.only_addition, inverse_input=args.inverse_input, inverse_output=args.inverse_output)
 
                 # 2. Validation Set (Balanced, 1000 mẫu)  
                 val_file = os.path.join(dir_path, f"val_{run_id}.json")
-                generate_dataset(1000, d, "random", args.format, val_file, only_addition=args.only_addition)
+                generate_dataset(1000, d, "random", args.format, val_file, only_addition=args.only_addition, inverse_input=args.inverse_input, inverse_output=args.inverse_output)
 
                 # 3. Test Set (Random, 2000 mẫu)
                 test_file = os.path.join(dir_path, f"test_{run_id}.json")
-                generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition)
+                generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition, inverse_input=args.inverse_input, inverse_output=args.inverse_output)
 
     elif args.mode == "single":
         if not args.count or not args.strategy or not args.output:
@@ -178,7 +188,9 @@ if __name__ == "__main__":
             format=args.format,
             output_file=args.output,
             print_example=args.print,
-            only_addition=args.only_addition
+            only_addition=args.only_addition,
+            inverse_input=args.inverse_input,
+            inverse_output=args.inverse_output
         )
     else:
         # Gen theo mode batch
@@ -190,7 +202,9 @@ if __name__ == "__main__":
           format=args.format, 
           output_file="data/data_train.json", 
           print_example=args.print,
-          only_addition=args.only_addition
+          only_addition=args.only_addition,
+          inverse_input=args.inverse_input,
+          inverse_output=args.inverse_output
         )
 
         # Tạo dữ liệu kiểm tra (Ngẫu nhiên)
@@ -198,10 +212,11 @@ if __name__ == "__main__":
           num_samples=args.test, 
           max_digits=args.digits, 
           sampling_strategy="random", 
-          format=args.format, 
           output_file="data/data_test.json", 
           print_example=args.print,
-          only_addition=args.only_addition
+          only_addition=args.only_addition,
+          inverse_input=args.inverse_input,
+          inverse_output=args.inverse_output
         )
 
         # Tạo dữ liệu validation (Cân bằng, NẾU CẦN)
@@ -213,5 +228,7 @@ if __name__ == "__main__":
                 format=args.format, 
                 output_file="data/data_val.json", 
                 print_example=args.print,
-                only_addition=args.only_addition
+                only_addition=args.only_addition,
+                inverse_input=args.inverse_input,
+                inverse_output=args.inverse_output
             )

@@ -8,6 +8,8 @@ Script này hỗ trợ 2 chế độ (mode): `batch` (mặc định) và `single
 - `--format`: Định dạng của mẫu (mặc định: decimal).
 - `--print`: In ra ví dụ mẫu sau khi tạo (mặc định: False).
 - `--only_addition`: Chỉ tạo các phép tính cộng (loại bỏ phép trừ).
+- `--inverse-input`: Đảo ngược các số hạng trong đầu vào (vd: `12` -> `21`).
+- `--inverse-output`: Đảo ngược kết quả đầu ra (vd: `12` -> `21`).
 - `--mode`: Chế độ chạy (`batch` hoặc `single`).
 
 ## 2. Chế độ BATCH (Mặc định)

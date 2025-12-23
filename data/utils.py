@@ -20,6 +20,8 @@ def format_fixed_character(n, max_digits):
     return sign + " ".join(s)
 
 def format_underscore(n):
+    if n < 0:
+        return "-" + "_".join(str(abs(n)))
     return "_".join(str(n))
 
 def format_words(n):
@@ -75,3 +77,13 @@ def apply_format(n, fmt, max_digits):
         return format_10e_based(n)
     else:
         raise ValueError(f"Unknown format: {fmt}")
+
+def invert_string(text):
+    prefix = ""
+    if text.startswith("- "):
+        prefix = "- "
+        text = text[2:]
+    elif text.startswith("-"):
+        prefix = "-"
+        text = text[1:]
+    return prefix + text[::-1]
