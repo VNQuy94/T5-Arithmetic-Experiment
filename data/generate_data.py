@@ -108,7 +108,7 @@ if __name__ == "__main__":
                         help="batch: Tạo 3 tập train/test/val. single: Tạo 1 tập tùy chỉnh. experiment: Tạo dữ liệu cho experiment chính.")
     
     # Batch mode arguments
-    parser.add_argument("--train", type=int, default=10000, help="[Batch / Experiment] Số mẫu train")
+    parser.add_argument("--train", type=int, default=1000, help="[Batch / Experiment] Số mẫu train")
     parser.add_argument("--test", type=int, default=1000, help="[Batch / Experiment] Số mẫu test")
     parser.add_argument("--val", type=int, default=0, help="[Batch / Experiment] Số mẫu val")
 
@@ -157,24 +157,15 @@ if __name__ == "__main__":
 
                 # 1. Train Set (Balanced, 1000 mẫu)
                 train_file = os.path.join(dir_path, f"train_{run_id}.json")
-                if args.train:
-                    generate_dataset(args.train, d, "balanced", args.format, train_file, only_addition=args.only_addition)
-                else:
-                    generate_dataset(1000, d, "random", args.format, train_file, only_addition=args.only_addition)
+                generate_dataset(1000, d, "random", args.format, train_file, only_addition=args.only_addition)
 
                 # 2. Validation Set (Balanced, 1000 mẫu)  
                 val_file = os.path.join(dir_path, f"val_{run_id}.json")
-                if args.val:
-                    generate_dataset(args.val, d, "balanced", args.format, val_file, only_addition=args.only_addition)
-                else:
-                    generate_dataset(1000, d, "random", args.format, val_file, only_addition=args.only_addition)
+                generate_dataset(1000, d, "random", args.format, val_file, only_addition=args.only_addition)
 
                 # 3. Test Set (Random, 2000 mẫu)
                 test_file = os.path.join(dir_path, f"test_{run_id}.json")
-                if args.test:
-                    generate_dataset(args.test, d, "random", args.format, test_file, only_addition=args.only_addition)
-                else:
-                    generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition)
+                generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition)
 
     elif args.mode == "single":
         if not args.count or not args.strategy or not args.output:
