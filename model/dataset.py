@@ -17,9 +17,7 @@ class JSONDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         
-        return {
-            "input": item['input'],
-            "target": item['target'],
-            "length": item.get('length', 0),        
-            "operation": item.get('operation', 'unknown') 
-        } 
+        input_text = item['input']
+        target_text = item['target']
+        
+        return input_text, target_text

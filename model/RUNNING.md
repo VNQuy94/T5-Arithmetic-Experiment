@@ -28,6 +28,8 @@ Các tham số này không ảnh hưởng đến quá trình train, nhưng sẽ 
 - --lr: Hiệu chỉnh learning rate
 - --num_workers: Số lượng core CPU dùng để load data
 - --weight_decay: Dùng để xử lí overfitting (chatGPT không tính phí)
+- --accumulate_grad_batches: Dùng để chia batch ra trường hợp batch quá to không load được.
+- --check_val_every_n_epoch: Sau bao nhiêu epoch thì xét mô hình với tập validation để tạo checkpoint.
 
 # Phần cứng (không nên đổi)
 - --accelerator: Dùng gì để train (gpu, cpu, mps)
@@ -44,12 +46,11 @@ python .\model\train.py \
     --output_dir .\output\run_experiment_1 \
     --model_name_or_path t5-small \
     --max_seq_length 512 \
-    --format 10e-based \
-    --train_size_log 10000 \
-    --sampling_strategy balanced \
     --seed 42 \
     --epochs 50 \
     --train_batch_size 16 \
+    --accumulate_grad_batches 1 \
+    --check_val_every_n_epoch 1 \
     --val_batch_size 32 \
     --lr 3e-4 \
     --num_workers 2 \
