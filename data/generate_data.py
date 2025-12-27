@@ -65,10 +65,10 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
         s2 = apply_format(n2, fmt, max_digits)
         s_res = apply_format(result, fmt, max_digits)
         
-        # Invert inputs if requested
+        # Đảo input
         if inverse_input:
-            s1 = invert_string(s1)
-            s2 = invert_string(s2)
+            s1 = invert_string(s1, fmt)
+            s2 = invert_string(s2, fmt)
         
         # Ví dụ đã thay đổi định dạng
         # Đầu vào: "What is 3 10e1 2 10e0 plus 5 10e0?"
@@ -78,7 +78,7 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
         target_text = s_res
         
         if inverse_output:
-             target_text = invert_string(target_text)
+             target_text = invert_string(target_text, fmt)
 
         data.append({
             "input": input_text,
