@@ -78,7 +78,7 @@ def apply_format(n, fmt, max_digits):
     else:
         raise ValueError(f"Unknown format: {fmt}")
 
-def invert_string(text):
+def invert_string(text, fmt):
     prefix = ""
     if text.startswith("- "):
         prefix = "- "
@@ -86,4 +86,36 @@ def invert_string(text):
     elif text.startswith("-"):
         prefix = "-"
         text = text[1:]
+    
+    if fmt == "decimal":
+        return prefix + text[::-1]
+    elif fmt == "character":
+        return prefix + " ".join(text.split(" ")[::-1])
+    elif fmt == "fixed-character":
+        return prefix + " ".join(text.split(" ")[::-1])
+    elif fmt == "underscore":
+        return prefix + "_".join(text.split("_")[::-1])
+    elif fmt == "words":
+        return prefix + " ".join(text.split(" ")[::-1])
+        
+    elif fmt == "10-based":
+        grouped_10 = text.split(" ")[::-1]
+
+        length = len(grouped_10)
+        for i in range(1, length - 1, 2):
+            if grouped_10[i] != "0" and int(grouped_10[i]) % 10 == 0:
+                grouped_10[i], grouped_10[i + 1] = grouped_10[i + 1], grouped_10[i]
+
+        return prefix + " ".join(grouped_10)
+
+    elif fmt == "10e-based":
+        grouped_10e = text.split(" ")[::-1]
+
+        length = len(grouped_10e)
+        for i in range(0, length - 1, 2):
+            if grouped_10e[i] != "0" and grouped_10e[i].startswith("10e"):
+                grouped_10e[i], grouped_10e[i + 1] = grouped_10e[i + 1], grouped_10e[i]
+
+        return prefix + " ".join(grouped_10e)
+
     return prefix + text[::-1]
