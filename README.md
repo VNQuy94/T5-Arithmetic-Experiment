@@ -159,3 +159,49 @@ To ensure fidelity to the Nogueira et al. (2021) paper:
 ## ⚠️ Important Notes
 
 1. **Tokenizer Parallelism Warning**: You usually can ignore `Tokenizers parallelism` warnings.
+
+---
+
+## 👥 Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/Simpolette">
+        <img src="https://github.com/Simpolette.png" width="100px;" alt="Simpolette"/><br />
+        <sub><b>23127020 - Hoàng Minh Giang</b></sub>
+      </a><br />
+      T5 Model Setup
+    </td>
+    <td align="center">
+      <a href="https://github.com/KwanTheAsian">
+        <img src="https://github.com/KwanTheAsian.png" width="100px;" alt="KwanTheAsian"/><br />
+        <sub><b>23127020 - Biện Xuân An</b></sub>
+      </a><br />
+      Model Evaluation and Documentation
+    </td>
+    <td align="center">
+      <a href="https://github.com/PaoPao1406">
+        <img src="https://github.com/PaoPao1406.png" width="100px;" alt="PaoPao1406"/><br />
+        <sub><b>23127025 - Đoàn Lê Gia Bảo</b></sub>
+      </a><br />
+      Model Evaluation and Documentation
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/VNQuy94">
+        <img src="https://github.com/VNQuy94.png" width="100px;" alt="VNQuy94"/><br />
+        <sub><b>23127114 - Văn Ngọc Quý</b></sub>
+      </a><br />
+      Project Manager / Notebook Setup
+    </td>
+    <td align="center">
+      <a href="https://github.com/Schooleo">
+        <img src="https://github.com/Schooleo.png" width="100px;" alt="Schooleo"/><br />
+        <sub><b>23127136 - Lê Nguyễn Nhật Trường</b></sub>
+      </a><br />
+      Dataset Generation Setup
+    </td>
+  </tr>
+</table>
