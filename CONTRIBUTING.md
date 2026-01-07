@@ -1,17 +1,18 @@
-# 🛠️ Development Guidelines (Internal Team)
+# 🛠️ Contributing Guidelines
 
-Dành cho các thành viên trong nhóm. Vui lòng đọc kỹ trước khi code.
+Thank you for your interest in contributing to the **T5 Arithmetic Experiment** project. Please read the following guidelines to ensure smooth collaboration.
 
-## 1. Project Structure (Phân chia khu vực)
+## 1. Project Structure
 
-Code của ai người nấy quản lý, hạn chế sửa file chéo.
+Please respect the directory structure and modify files in the appropriate locations:
 
-- **`data/`**: Chứa script sinh dữ liệu.
-- **`model/`**: Chứa code train và dataset loader.
+- **`data/`**: Scripts for data generation and processing (`generate_data.py`, `utils.py`).
+- **`model/`**: Model training, evaluation logic, and dataset loading (`train.py`, `dataset.py`, `evaluate.py`).
+- **`experiment/`**: Stores artifacts like model checkpoints and logs.
 
-## 2. Data Interface Contract ⚠️ (QUAN TRỌNG)
+## 2. Data Interface Contract ⚠️ (CRITICAL)
 
-Phải đảm bảo output ra file JSON đúng định dạng sau để công việc dễ dàng hơn:
+To ensure compatibility between the data generation and training pipelines, all generated datasets must adhere to the following JSON structure:
 
 ```json
 [
@@ -27,22 +28,29 @@ Phải đảm bảo output ra file JSON đúng định dạng sau để công vi
 
 ## 3. Git Workflow
 
-Không push thẳng lên `main`. Luôn tạo branch mới theo tên feature:
+Please do **not** push directly to the `main` branch. Follow this workflow:
 
-- `feat/data` - cho script sinh dữ liệu.
-- `feat/model` - cho code liên quan đến model và training.
-  Ví dụ:
+1.  **Create a Branch**: Use descriptive names for your branches.
 
-```bash
-git checkout -b feat/data
-```
+    - `feat/data`: For changes to data generation.
+    - `feat/model`: For changes to model architecture or training loops.
+    - `fix/bug-name`: For bug fixes.
 
-Sau khi hoàn thành, tạo pull request để review code trước khi merge vào `main`.
+    ```bash
+    git checkout -b feat/your-feature-name
+    ```
+
+2.  **Commit Changes**: Write clear, concise commit messages.
+3.  **Pull Request**: Open a Pull Request (PR) for review before merging into `main`.
 
 ## 4. Environment Setup
 
-Luôn đảm bảo cài đặt đúng thư viện trong `requirements.txt`:
+Ensure your development environment matches the project requirements:
 
 ```bash
 pip install -r requirements.txt
 ```
+
+---
+
+Happy Coding! 🚀

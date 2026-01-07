@@ -5,74 +5,157 @@ This repository contains the code to reproduce the experiments presented in the 
 
 **Objective:** To demonstrate that the surface form representation of numbers (Input Representation) is the critical factor determining whether a Transformer model (T5) can successfully learn arithmetic operations.
 
----
+## 📂 Project Structure
 
-## 📋 Requirements
-
-This project is optimized for environments like Google Colab or Kaggle (T4 GPU).
-
-```bash
-pip install torch torchvision torchaudio
-pip install pytorch-lightning transformers datasets num2words pandas matplotlib
+```text
+T5-Arithmetic-Experiment/
+├── data/
+│   ├── generate_data.py     # Script to generate arithmetic datasets
+│   └── utils.py             # Helper utilities for data processing
+├── model/
+│   ├── train.py             # Main training script using PyTorch Lightning
+│   ├── dataset.py           # Custom Dataset class
+│   ├── evaluate.py          # Evaluation script
+│   └── config.py            # Global configuration constants
+├── experiment/              # Directory for experiment artifacts
+├── requirements.txt         # Python dependencies
+├── CONTRIBUTING.md          # Contributing guidelines
+└── README.md                # Project documentation
 ```
 
-## ⚙️ Paper Configuration & Reproduction Settings
+---
 
-To ensure fidelity to the original paper, we use the following hyperparameters:
+## 🛠️ Setup & Installation
 
-| Hyperparameter | Value in Paper | Configuration in this Code |
-| :--- | :--- | :--- |
-| **Model Architecture** | T5-Small (60M) | `--model_name_or_path t5-small` |
-| **Optimizer** | AdamW | Default (HuggingFace Trainer) |
-| **Learning Rate** | 0.0003 ($3 \times 10^{-4}$) | `--lr 3e-4` |
-| **Batch Size** | 128 | `--train_batch_size 128`* |
-| **Epochs** | 20 | `--epochs 20` |
-| **Max Seq Length**| Not specified | `--max_seq_length 512` (Critical for 10e-based) |
+### 1. Environment Support
+
+This project is optimized for:
+
+- **Local Machines** (with NVIDIA GPU or CPU)
+- **Cloud Notebooks** (Kaggle Kernels, Google Colab)
+
+### 2. Install Dependencies
+
+Ensure you have Python 3.8+ installed.
+
+```bash
+pip install -r requirements.txt
+```
+
+_Key Libraries used:_
+
+- **PyTorch**: Deep learning framework.
+- **PyTorch Lightning**: Wrapper to organize PyTorch code and handle training loops/multi-GPU logic.
+- **HuggingFace Transformers**: For the T5 model architecture and tokenizer.
+- **Num2Words**: For converting numbers to text representations.
 
 ---
 
-## 🚀 Reproduction Instructions
+## ☁️ Running on Kaggle (GPU T4 x2)
 
-### 1. Data Generation
+To run this experiment efficiently on Kaggle, specifically leveraging the **Dual T4 GPU** setup:
 
-The paper emphasizes using **Balanced Sampling** during training to ensure the model sees an equal distribution of numbers with different digit lengths (from 2 to 30 digits).
+### Step 1: Notebook Setup
 
-Run the following command to generate the datasets:
+1. Create a new Notebook in Kaggle.
+2. In the right-hand panel, under **Accelerator**, select **GPU T4 x2**.
+
+### Step 2: Running Experiments (Save Version)
+
+Interactive mode is good for debugging, but for long training runs (which can take hours), use "Save Version".
+
+1. **Upload Code**: You can either upload this directory as a Kaggle Dataset and copy files to `/kaggle/working/`, or pull from Git.
+2. **Install Dependencies**:
+   ```python
+   !pip install -r requirements.txt
+   ```
+3. **Execute Training**:
+   Add a cell to run the training script. **Crucially**, to utilize both GPUs, pass `--accelerator gpu --devices 2` (PyTorch Lightning handles distributed training automatically).
+
+   ```python
+   # Example: Train on generated data
+   !python model/train.py \
+       --train_file data/data_train.json \
+       --val_file data/data_test.json \
+       --test_file data/data_test.json \
+       --output_dir outputs/run_kag_2gpu \
+       --model_name_or_path t5-small \
+       --format 10e-based \
+       --epochs 20 \
+       --train_batch_size 128 \
+       --accelerator gpu \
+       --devices 2
+   ```
+
+4. **Commit**: Click **Save Version** -> **Save & Run All (Commit)**. This runs the notebook in the background (up to 12 hours), allowing you to close the browser.
+
+---
+
+## 📊 Data Generation
+
+The paper emphasizes **Balanced Sampling** to ensure equal distribution of digit lengths (2 to 30 digits).
+
+**Command:**
 
 ```bash
-# Generate Balanced Training and Test data
-python generate_data.py \
+python data/generate_data.py \
     --train 10000 \
     --test 1000 \
     --digits 30 \
     --sampling_strategy balanced \
     --format 10e-based
 ```
-*Tip: Change `--format` to `decimal` or `character` for other experimental setups.*
 
-### 2. Training Experiments (Figure 1 Reproduction)
+| Argument              | Description                                                     |
+| :-------------------- | :-------------------------------------------------------------- |
+| `--train` / `--test`  | Number of samples to generate.                                  |
+| `--digits`            | Maximum number of digits (e.g., 30).                            |
+| `--format`            | Input representation: `10e-based`, `decimal`, `character`, etc. |
+| `--sampling_strategy` | `balanced` (recommended) or `random`.                           |
 
-Run the following commands to reproduce the accuracy comparison between different input representations.
+---
 
-#### Experiment A: 10e-based Representation (Proposed Method)
-This format uses position tokens (e.g., `3 10e1 2 10e0`) and achieves the best results.
+## 🚀 Model Training (T5 with PyTorch Lightning)
+
+The core training logic resides in `model/train.py`. We use `T5-Small` as the baseline.
+
+**Basic Command:**
 
 ```bash
-python train.py \
+python model/train.py \
     --train_file data/data_train.json \
     --val_file data/data_test.json \
     --test_file data/data_test.json \
-    --output_dir outputs/10e_based_run \
+    --output_dir outputs/my_experiment \
     --model_name_or_path t5-small \
     --format 10e-based \
     --max_seq_length 512 \
     --train_batch_size 128 \
     --lr 3e-4 \
-    --epochs 20 \
-    --seed 42
+    --epochs 20
 ```
 
+### Key Configurations
+
+- **Framework**: Uses `pytorch_lightning.LightningModule` to define `T5Finetuner`.
+- **Max Seq Length**: The `10e-based` format is verbose. For 30-digit numbers, use `--max_seq_length 512` to avoid truncation.
+- **Precision**: You can enable mixed precision for speed on GPUs using `--precision 16-mixed` (if supported by your PT Lightning version/Hardware).
+
+---
+
+## ⚙️ Paper Hyperparameters
+
+To ensure fidelity to the Nogueira et al. (2021) paper:
+
+| Hyperparameter | Value    | Flag                            |
+| :------------- | :------- | :------------------------------ |
+| **Model**      | T5-Small | `--model_name_or_path t5-small` |
+| **Optimizer**  | AdamW    | Default                         |
+| **LR**         | 3e-4     | `--lr 3e-4`                     |
+| **Batch Size** | 128      | `--train_batch_size 128`        |
+
+---
+
 ## ⚠️ Important Notes
-1.  **Max Sequence Length:** The `10e-based` format significantly increases the sequence length (approx. 4x tokens per digit). You MUST set `--max_seq_length 512` (or higher) when training with numbers > 30 digits to avoid truncation, which leads to 0% accuracy.
-2.  **Tokenizer Parallelism:** You may see a warning about `tokenizers parallelism`. This is normal and can be safely ignored.
-```
+
+1. **Tokenizer Parallelism Warning**: You usually can ignore `Tokenizers parallelism` warnings.
