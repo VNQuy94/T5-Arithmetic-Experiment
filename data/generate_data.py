@@ -6,8 +6,8 @@ from utils import apply_format, invert_string
 
 def balanced_sampling(max_digits):
     """
-    Lấy mẫu d từ [2, max_digits].
-    Lấy mẫu n1, n2 từ [10^(d-1), 10^d - 1].
+    Sample d from [2, max_digits].
+    Sample n1, n2 from [10^(d-1), 10^d - 1].
     """
     d = random.randint(2, max_digits)
     min_val = 10**(d-1)
@@ -18,7 +18,7 @@ def balanced_sampling(max_digits):
 
 def random_sampling(max_digits):
     """
-    Lấy mẫu n1, n2 từ [0, 10^max_digits - 1].
+    Sample n1, n2 from [0, 10^max_digits - 1].
     """
     max_val = 10**max_digits - 1
     n1 = random.randint(0, max_val)
@@ -37,7 +37,7 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
     else:
         operations = ["plus", "minus"]
 
-    # Nếu format không hợp lệ, chọn ngẫu nhiên
+    # If format is invalid, choose random
     if (format not in formats):
         format = random.choice(formats)
     fmt = format
@@ -48,7 +48,7 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
         else:
             n1, n2, length = random_sampling(max_digits)
 
-        # Chọn ngẫu nhiên giữa 2 toán tử
+        # Randomly choose between 2 operations
         op = random.choice(operations)
 
         if op == "plus":
@@ -58,21 +58,21 @@ def generate_dataset(num_samples, max_digits, sampling_strategy, format, output_
             result = n1 - n2
             op_str = "minus"
 
-        # Đầu vào: "What is [n1] [op] [n2]?"
-        # Giờ thì thay đổi định dạng cho n1 và n2.
+        # Input: "What is [n1] [op] [n2]?"
+        # Now change format for n1 and n2.
         
         s1 = apply_format(n1, fmt, max_digits)
         s2 = apply_format(n2, fmt, max_digits)
         s_res = apply_format(result, fmt, max_digits)
         
-        # Đảo input
+        # Invert input
         if inverse_input:
             s1 = invert_string(s1, fmt)
             s2 = invert_string(s2, fmt)
         
-        # Ví dụ đã thay đổi định dạng
-        # Đầu vào: "What is 3 10e1 2 10e0 plus 5 10e0?"
-        # Kết quả mong muốn: "3 10e1 7 10e0"
+        # Example of changed format
+        # Input: "What is 3 10e1 2 10e0 plus 5 10e0?"
+        # Desired Result: "3 10e1 7 10e0"
         
         input_text = f"What is {s1} {op_str} {s2}?"
         target_text = s_res
@@ -108,28 +108,28 @@ if __name__ == "__main__":
     parser.add_argument("--digits", type=int, default=6)
     parser.add_argument("--format", type=str, default="decimal")
     parser.add_argument("--print", type=bool, default=False)
-    parser.add_argument("--only_addition", action="store_true", help="Chỉ tạo phép cộng (loại bỏ phép trừ)")
-    parser.add_argument("--inverse-input", action="store_true", help="Đảo ngược các số trong input")
-    parser.add_argument("--inverse-output", action="store_true", help="Đảo ngược kết quả")
+    parser.add_argument("--only_addition", action="store_true", help="Only generate addition (remove subtraction)")
+    parser.add_argument("--inverse-input", action="store_true", help="Reverse numbers in input")
+    parser.add_argument("--inverse-output", action="store_true", help="Reverse the result")
     
     # Mode selection
     parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
     parser.add_argument("--mode", type=str, choices=["batch", "single", "experiment"], default="batch",
-                        help="batch: Tạo 3 tập train/test/val. single: Tạo 1 tập tùy chỉnh. experiment: Tạo dữ liệu cho experiment chính.")
+                        help="batch: Create 3 sets train/test/val. single: Create 1 custom set. experiment: Generate data for main experiment.")
     
     # Batch mode arguments
-    parser.add_argument("--train", type=int, default=1000, help="[Batch / Experiment] Số mẫu train")
-    parser.add_argument("--test", type=int, default=1000, help="[Batch / Experiment] Số mẫu test")
-    parser.add_argument("--val", type=int, default=0, help="[Batch / Experiment] Số mẫu val")
+    parser.add_argument("--train", type=int, default=1000, help="[Batch / Experiment] Number of training samples")
+    parser.add_argument("--test", type=int, default=1000, help="[Batch / Experiment] Number of test samples")
+    parser.add_argument("--val", type=int, default=0, help="[Batch / Experiment] Number of val samples")
 
     # Single mode arguments
-    parser.add_argument("--count", type=int, help="[Single] Số mẫu")
-    parser.add_argument("--strategy", type=str, choices=["balanced", "random"], help="[Single] Quy tắc lấy mẫu")
-    parser.add_argument("--output", type=str, help="[Single] Đường dẫn file output")
+    parser.add_argument("--count", type=int, help="[Single] Number of samples")
+    parser.add_argument("--strategy", type=str, choices=["balanced", "random"], help="[Single] Sampling rule")
+    parser.add_argument("--output", type=str, help="[Single] Output file path")
 
     # Experiment mode arguments
-    parser.add_argument("--base_path", type=str, default="data/experiment", help="[Experiment] Thư mục output")
-    parser.add_argument("--digit_steps", type=int, nargs='+', default=None, help="[Experiment] Danh sách các chữ số tối đa (default: 2, 5, 10, 15, 20, 25, 30)")
+    parser.add_argument("--base_path", type=str, default="data/experiment", help="[Experiment] Output directory")
+    parser.add_argument("--digit_steps", type=int, nargs='+', default=None, help="[Experiment] List of max digits (default: 2, 5, 10, 15, 20, 25, 30)")
 
     args = parser.parse_args()
 
@@ -138,9 +138,9 @@ if __name__ == "__main__":
 
     if args.mode == "experiment":
         # Main Experiment:
-        # 5 tập của 1,000 mẫu phép cộng (Balanced)
-        # x-axis: số chữ số tối đa (e.g. 5, 10, 15, 20, 25, 30)
-        # Tập validation: 1,000 mẫu
+        # 5 sets of 1,000 addition samples (Balanced)
+        # x-axis: max digits (e.g. 5, 10, 15, 20, 25, 30)
+        # Validation set: 1,000 samples
         
         if args.digit_steps:
             digit_steps = args.digit_steps
@@ -150,13 +150,13 @@ if __name__ == "__main__":
         print(f"Generating Experiment Data in {args.base_path}...")
         
         for d in digit_steps:
-            # Tạo mỗi thư mục cho mỗi chữ số
+            # Create folder for each digit count
             dir_path = os.path.join(args.base_path, f"digits_{d}")
             os.makedirs(dir_path, exist_ok=True)
             
             print(f"  -> Processing {d} digits...")
 
-            # Lặp qua 5 seed ngẫu nhiên
+            # Loop through 5 random seeds
             for run_id in range(1, 6):
                 # Set base seed
                 if args.seed is not None:
@@ -165,21 +165,21 @@ if __name__ == "__main__":
                 
                 print(f"    -> Run {run_id}...")
 
-                # 1. Train Set (Balanced, 1000 mẫu)
+                # 1. Train Set (Balanced, 1000 samples)
                 train_file = os.path.join(dir_path, f"train_{run_id}.json")
                 generate_dataset(1000, d, "random", args.format, train_file, only_addition=args.only_addition, inverse_input=args.inverse_input, inverse_output=args.inverse_output)
 
-                # 2. Validation Set (Balanced, 1000 mẫu)  
+                # 2. Validation Set (Balanced, 1000 samples)
                 val_file = os.path.join(dir_path, f"val_{run_id}.json")
                 generate_dataset(1000, d, "random", args.format, val_file, only_addition=args.only_addition, inverse_input=args.inverse_input, inverse_output=args.inverse_output)
 
-                # 3. Test Set (Random, 2000 mẫu)
+                # 3. Test Set (Random, 2000 samples)
                 test_file = os.path.join(dir_path, f"test_{run_id}.json")
                 generate_dataset(2000, d, "random", args.format, test_file, only_addition=args.only_addition, inverse_input=args.inverse_input, inverse_output=args.inverse_output)
 
     elif args.mode == "single":
         if not args.count or not args.strategy or not args.output:
-            parser.error("Cần cung cấp --count, --strategy, và --output trong mode single.")
+            parser.error("Must provide --count, --strategy, and --output in single mode.")
         
         generate_dataset(
             num_samples=args.count,
@@ -193,8 +193,8 @@ if __name__ == "__main__":
             inverse_output=args.inverse_output
         )
     else:
-        # Gen theo mode batch
-        # Tạo dữ liệu huấn luyện (Cân bằng)
+        # Generate in batch mode
+        # Create training data (Balanced)
         generate_dataset(
           num_samples=args.train, 
           max_digits=args.digits, 
@@ -207,7 +207,7 @@ if __name__ == "__main__":
           inverse_output=args.inverse_output
         )
 
-        # Tạo dữ liệu kiểm tra (Ngẫu nhiên)
+        # Create test data (Random)
         generate_dataset(
           num_samples=args.test, 
           max_digits=args.digits, 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
           inverse_output=args.inverse_output
         )
 
-        # Tạo dữ liệu validation (Cân bằng, NẾU CẦN)
+        # Create validation data (Balanced, IF NEEDED)
         if (args.val > 0):
             generate_dataset(
                 num_samples=args.val, 
